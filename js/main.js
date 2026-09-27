@@ -1,9 +1,9 @@
-// Точка входа: загрузка данных, сцена, цикл, дефолт «Москва, сейчас».
+// Точка входа: загрузка данных, сцена, цикл, панель места/времени.
 import * as THREE from "../vendor/three.module.js";
 import { loadSkyData } from "./skydata.js";
 import { createSkyScene, SPHERE_RADIUS } from "./scene.js";
 import { createControls } from "./controls.js";
-import { jdFromDate } from "./astromath.js";
+import { resolveStart, applyStateToUrl, watchTime, findCity, CITIES } from "./location.js";
 
 const canvas = document.getElementById("sky");
 const loader = document.getElementById("loader");
@@ -45,8 +45,107 @@ async function boot() {
   addEventListener("resize", resize);
   resize();
 
-  // дефолт: Москва, сейчас (до Task 7 геолокации)
-  sky.setTimeLocation(jdFromDate(new Date()), 55.755, 37.62);
+  // --- состояние места/времени и панель «Где я?» (ui-lite до Task 8) ---
+  const state = await resolveStart();
+  sky.setTimeLocation(watchTime(state), state.lat, state.lon);
+
+  const $ = (id) => document.getElementById(id);
+  const panel = $("location-panel"), notice = $("watch-notice"),
+        slider = $("hour-slider"), dateInput = $("date-input");
+
+  function refresh() {
+    sky.setTimeLocation(watchTime(state), state.lat, state.lon);
+    applyStateToUrl(state);
+    const now = state.isNow;
+    notice.hidden = now;
+    if (!now) {
+      const d = state.date;
+      const where = state.geo ? "моё местоположение"
+        : (findCity(state.cityId)?.ru || "Москва");
+      const dayMonth = d.toLocaleString("ru", { day: "numeric", month: "long" });
+      $("watch-text").textContent =
+        `Вы смотрите небо: ${where}, ${dayMonth}, ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
+  }
+
+  $("btn-location").addEventListener("click", () => {
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) {
+      const d = state.isNow ? new Date() : state.date;
+      slider.value = d.getHours() + d.getMinutes() / 60;
+      dateInput.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      renderCities("");
+    }
+  });
+  $("btn-close-location").addEventListener("click", () => (panel.hidden = true));
+
+  function setTime(d) {
+    state.date = d;
+    state.isNow = false;
+    refresh();
+  }
+  let throttle = 0;
+  function setTimeThrottled(d) {
+    state.date = d; state.isNow = false;
+    const t = performance.now();
+    if (t - throttle > 60) { throttle = t; refresh(); }
+    else { clearTimeout(setTimeThrottled._id); setTimeThrottled._id = setTimeout(refresh, 70); }
+  }
+  slider.addEventListener("input", () => {
+    const h = parseFloat(slider.value);
+    const d = new Date(state.date || new Date());
+    d.setHours(Math.floor(h), Math.round((h % 1) * 60), 0, 0);
+    setTimeThrottled(d);
+  });
+  dateInput.addEventListener("change", () => {
+    const [y, m, dd] = dateInput.value.split("-").map(Number);
+    const d = new Date(state.date || new Date());
+    d.setFullYear(y, m - 1, dd);
+    setTime(d);
+  });
+  const shift = (ms) => () => setTime(new Date((state.date || new Date()).getTime() + ms));
+  $("btn-minus-hour").addEventListener("click", shift(-3600e3));
+  $("btn-plus-hour").addEventListener("click", shift(3600e3));
+  $("btn-minus-day").addEventListener("click", shift(-86400e3));
+  $("btn-plus-day").addEventListener("click", shift(86400e3));
+  $("btn-now").addEventListener("click", () => {
+    state.date = null; state.isNow = true; refresh();
+  });
+  $("btn-geo").addEventListener("click", () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        Object.assign(state, {
+          cityId: null, lat: pos.coords.latitude, lon: pos.coords.longitude, geo: true,
+        });
+        refresh();
+      },
+      () => { try { sessionStorage.setItem("geo-denied", "1"); } catch {} },
+      { timeout: 4000 }
+    );
+  });
+
+  function renderCities(q) {
+    const list = $("city-list");
+    list.innerHTML = "";
+    const s = q.trim().toLowerCase();
+    for (const c of CITIES) {
+      if (s && !c.ru.toLowerCase().includes(s)) continue;
+      const b = document.createElement("button");
+      b.className = "city-item";
+      b.textContent = c.ru;
+      b.addEventListener("click", () => {
+        Object.assign(state, { cityId: c.id, lat: c.lat, lon: c.lon, geo: false });
+        panel.hidden = true;
+        refresh();
+      });
+      list.appendChild(b);
+    }
+  }
+  $("city-search").addEventListener("input", () => renderCities($("city-search").value));
+  renderCities("");
+  refresh();
+
 
   const controls = createControls(sky.camera, canvas, sky);
   window.__sky = sky; // отладка
