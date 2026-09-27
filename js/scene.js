@@ -258,7 +258,8 @@ export function createSkyScene(canvas, data) {
     const g = grad.getContext("2d");
     const lg = g.createLinearGradient(0, 0, 0, 128);
     lg.addColorStop(0, "rgba(10,12,18,0.0)");
-    lg.addColorStop(0.15, "rgba(9,11,17,0.8)");
+    lg.addColorStop(0.06, "rgba(9,11,17,0.9)");
+    lg.addColorStop(0.45, "rgba(5,6,11,1)");
     lg.addColorStop(1, "rgba(4,5,10,1)");
     g.fillStyle = lg;
     g.fillRect(0, 0, 4, 128);
@@ -268,13 +269,33 @@ export function createSkyScene(canvas, data) {
       new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, transparent: true, depthWrite: false })
     );
     cyl.position.y = -SPHERE_RADIUS * 0.27;
+    cyl.renderOrder = 5; // рисуем после звёзд/GP: закрывает всё под горизонтом
     groundGroup.add(cyl);
     const horizon = new THREE.Mesh(
       new THREE.TorusGeometry(SPHERE_RADIUS, 0.7, 6, 128),
       new THREE.MeshBasicMaterial({ color: 0x39415a, transparent: true, opacity: 0.65 })
     );
     horizon.rotation.x = Math.PI / 2;
+    horizon.renderOrder = 6;
     groundGroup.add(horizon);
+  }
+
+  // подписи сторон света — зафиксированы по азимуту (в groundGroup, не в skyGroup)
+  {
+    const dirs = [
+      { t: "С", x: 0, z: -1 },   // север: −Z
+      { t: "Ю", x: 0, z: 1 },    // юг: +Z
+      { t: "В", x: 1, z: 0 },    // восток: +X
+      { t: "З", x: -1, z: 0 },   // запад: −X
+    ];
+    for (const d of dirs) {
+      const sp = makeLabelSprite(d.t);
+      const r = SPHERE_RADIUS * 0.99;
+      sp.position.set(d.x * r, 14, d.z * r);
+      sp.scale.multiplyScalar(4.5); // стороны света крупнее подписей созвездий
+      sp.renderOrder = 7; // поверх земли
+      groundGroup.add(sp);
+    }
   }
 
   // ---- методы ----
