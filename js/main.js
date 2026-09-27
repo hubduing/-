@@ -4,6 +4,7 @@ import { loadSkyData } from "./skydata.js";
 import { createSkyScene, SPHERE_RADIUS } from "./scene.js";
 import { createControls } from "./controls.js";
 import { resolveStart, applyStateToUrl, watchTime, findCity, CITIES } from "./location.js";
+import { createUI } from "./ui.js";
 
 const canvas = document.getElementById("sky");
 const loader = document.getElementById("loader");
@@ -149,6 +150,8 @@ async function boot() {
 
   const controls = createControls(sky.camera, canvas, sky);
   window.__sky = sky; // отладка
+  const ui = createUI(sky, controls);
+  window.__ui = ui; // отладка
 
   loader.hidden = true;
   canvas.style.opacity = "0";
