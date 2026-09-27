@@ -27,7 +27,8 @@ npx serve
 
 - `data/stars.json` — 5044 звезды (mag ≤ 6.0): ra (часы J2000), dec, mag, bv, ru-имя
 - `data/constellations.json` — 88 созвездий: линии фигур, подписи, лучшие месяцы
-- `data/milkyway.json` — полигоны Млечного Пути (растеризуются в canvas-текстуру на лету)
+- `data/milkyway.json` — полигоны Млечного Пути в экваториальных координатах
+  J2000 (растеризуются в canvas-текстуру на лету)
 
 ## Three.js
 

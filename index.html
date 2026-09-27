@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Карта созвездий — небо над тобой</title>
+  <meta name="description" content="Интерактивная карта звёздного неба: реальные созвездия над вашим местоположением, мифы и легенды." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="sky" aria-label="Панорамная карта звёздного неба"></canvas>
+
+  <div id="loader">
+    <div class="loader-star">✦</div>
+    <div class="loader-text">Готовим небо…</div>
+  </div>
+
+  <div id="no-webgl" hidden>
+    <h1>✦ Карта созвездий</h1>
+    <p>Ваш браузер не поддерживает WebGL — интерактивное небо недоступно.
+       Сайт показывает реальное звёздное небо над вашим местоположением:
+       88 созвездий, их фигуры и древние легенды. Попробуйте другой браузер
+       или обновите этот.</p>
+  </div>
+
+  <div id="hint" hidden>Проведите пальцем по небу ✦</div>
+
+  <!-- панель «Где я?» -->
+  <div id="topbar" hidden>
+    <button id="btn-location" aria-label="Где я? Настройка места и времени">📍</button>
+    <button id="btn-ribbon" aria-label="Все созвездия">Созвездия</button>
+  </div>
+
+  <div id="location-panel" hidden>
+    <div class="panel-head">
+      <span>Где и когда?</span>
+      <button id="btn-close-location" aria-label="Закрыть">✕</button>
+    </div>
+    <button id="btn-geo">Моё местоположение</button>
+    <input id="city-search" type="search" placeholder="Город…" autocomplete="off" />
+    <div id="city-list"></div>
+    <div class="time-row">
+      <input id="date-input" type="date" />
+    </div>
+    <div class="time-row">
+      <button id="btn-minus-day">−1д</button>
+      <button id="btn-minus-hour">−1ч</button>
+      <input id="hour-slider" type="range" min="0" max="23" step="0.1" />
+      <button id="btn-plus-hour">+1ч</button>
+      <button id="btn-plus-day">+1д</button>
+    </div>
+    <div id="watch-notice" hidden>
+      <span id="watch-text"></span>
+      <button id="btn-now">Сегодня</button>
+    </div>
+  </div>
+
+  <div id="const-card" hidden>
+    <div class="card-head">
+      <div>
+        <h2 id="card-title"></h2>
+        <div id="card-sub" class="muted"></div>
+      </div>
+      <button id="card-close" aria-label="Закрыть">✕</button>
+    </div>
+    <div id="card-legend"></div>
+    <div id="card-facts" class="muted"></div>
+  </div>
+
+  <div id="ribbon" hidden><div id="ribbon-inner"></div></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
