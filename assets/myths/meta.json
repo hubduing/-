@@ -1,0 +1,107 @@
+{
+ "ori": {
+  "ra": 5.4324,
+  "dec": 6.98,
+  "wDeg": 33.2,
+  "hDeg": 43.71,
+  "svg": "assets/myths/ori.svg"
+ },
+ "umi": {
+  "ra": 15.7633,
+  "dec": 80.02,
+  "wDeg": 14.63,
+  "hDeg": 29.42,
+  "svg": "assets/myths/umi.svg"
+ },
+ "uma": {
+  "ra": 10.9076,
+  "dec": 52.65,
+  "wDeg": 65.72,
+  "hDeg": 50.24,
+  "svg": "assets/myths/uma.svg"
+ },
+ "cyg": {
+  "ra": 20.1555,
+  "dec": 40.73,
+  "wDeg": 33.35,
+  "hDeg": 37.53,
+  "svg": "assets/myths/cyg.svg"
+ },
+ "cas": {
+  "ra": 0.9898,
+  "dec": 60.36,
+  "wDeg": 21.27,
+  "hDeg": 15.76,
+  "svg": "assets/myths/cas.svg"
+ },
+ "per": {
+  "ra": 3.3943,
+  "dec": 45.16,
+  "wDeg": 35.94,
+  "hDeg": 35.79,
+  "svg": "assets/myths/per.svg"
+ },
+ "and": {
+  "ra": 0.5607,
+  "dec": 38.6,
+  "wDeg": 48.16,
+  "hDeg": 39.58,
+  "svg": "assets/myths/and.svg"
+ },
+ "cep": {
+  "ra": 21.8354,
+  "dec": 63.94,
+  "wDeg": 26.09,
+  "hDeg": 33.03,
+  "svg": "assets/myths/cep.svg"
+ },
+ "dra": {
+  "ra": 16.8179,
+  "dec": 66.34,
+  "wDeg": 49.7,
+  "hDeg": 47.3,
+  "svg": "assets/myths/dra.svg"
+ },
+ "tau": {
+  "ra": 4.3021,
+  "dec": 14.55,
+  "wDeg": 46.1,
+  "hDeg": 41.86,
+  "svg": "assets/myths/tau.svg"
+ },
+ "gem": {
+  "ra": 7.0376,
+  "dec": 23.13,
+  "wDeg": 31.34,
+  "hDeg": 29.67,
+  "svg": "assets/myths/gem.svg"
+ },
+ "vir": {
+  "ra": 13.2723,
+  "dec": -0.4,
+  "wDeg": 64.74,
+  "hDeg": 39.49,
+  "svg": "assets/myths/vir.svg"
+ },
+ "sco": {
+  "ra": 16.8109,
+  "dec": -33.64,
+  "wDeg": 33.68,
+  "hDeg": 34.5,
+  "svg": "assets/myths/sco.svg"
+ },
+ "lyr": {
+  "ra": 18.8075,
+  "dec": 36.51,
+  "wDeg": 11.45,
+  "hDeg": 14.43,
+  "svg": "assets/myths/lyr.svg"
+ },
+ "peg": {
+  "ra": 22.7258,
+  "dec": 21.01,
+  "wDeg": 52.14,
+  "hDeg": 41.62,
+  "svg": "assets/myths/peg.svg"
+ }
+}

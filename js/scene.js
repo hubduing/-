@@ -161,7 +161,7 @@ void main() {
  * Создать сцену неба. Возвращает sky с методами управления.
  */
 export function createSkyScene(canvas, data) {
-  const { stars, constellations, milkyway } = data;
+  const { stars, constellations, milkyway, mythMeta } = data;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 4000);
   camera.position.set(0, 0, 0);
@@ -248,6 +248,48 @@ export function createSkyScene(canvas, data) {
 
   // Млечный Путь
   skyGroup.add(makeEquatorialSphere(SPHERE_RADIUS * 1.05, renderMilkyWayTexture(milkyway)));
+
+  // --- мифы: SVG-коконы, вписанные в сферу плоские quad'ы ---
+  const mythMeshes = {}; // id -> {mesh, tex, base:{ra,dec,wDeg,hDeg}, target, fade}
+  function buildMyth(id, meta, img) {
+    const c = document.createElement("canvas");
+    c.width = img.width; c.height = img.height;
+    c.getContext("2d").drawImage(img, 0, 0);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const w = 2 * SPHERE_RADIUS * Math.tan((meta.wDeg / 2) * Math.PI / 180);
+    const h = 2 * SPHERE_RADIUS * Math.tan((meta.hDeg / 2) * Math.PI / 180);
+    const geo = new THREE.PlaneGeometry(w, h);
+    const mat = new THREE.MeshBasicMaterial({
+      map: tex, transparent: true, opacity: 0, side: THREE.DoubleSide,
+      depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.renderOrder = 10;
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    // ориентация: local +X = восток, +Y = север, +Z = наружу (к наблюдателю)
+    const dir = equatorialToVector(meta.ra, meta.dec);
+    const d = new THREE.Vector3(dir[0], dir[1], dir[2]).normalize();
+    const up = new THREE.Vector3(0, 1, 0);
+    const east = new THREE.Vector3().crossVectors(up, d);
+    if (east.lengthSq() < 1e-6) east.set(1, 0, 0);
+    east.normalize();
+    const north = new THREE.Vector3().crossVectors(d, east).normalize();
+    const m = new THREE.Matrix4().makeBasis(east, north, d.clone().negate());
+    mesh.quaternion.setFromRotationMatrix(m);
+    mesh.position.copy(d).multiplyScalar(SPHERE_RADIUS * 0.96);
+    skyGroup.add(mesh);
+    return { mesh, tex, meta, target: 0, fade: 0 };
+  }
+  function loadMythImages(metaAll) {
+    for (const [id, meta] of Object.entries(metaAll)) {
+      const img = new Image();
+      img.onload = () => { mythMeshes[id] = buildMyth(id, meta, img); };
+      img.src = meta.svg;
+    }
+  }
+  if (mythMeta) loadMythImages(mythMeta);
 
   // горизонт + земля (горизонтальная система, не вращается со skyGroup)
   const groundGroup = new THREE.Group();
@@ -361,6 +403,7 @@ export function createSkyScene(canvas, data) {
       return { alt, az };
     },
     byId: (id) => constellations.find((c) => c.id === id),
+    allConstellations: () => constellations,
     setTimeLocation(jd, latDeg, lonDeg) {
       fillPositions(jd);
       const lstHours = (((gmst(jd) + lonDeg / 15) % 24) + 24) % 24;
@@ -393,8 +436,21 @@ export function createSkyScene(canvas, data) {
       for (const l of labelGroup.children) {
         l.material.opacity = id && l.userData.constId !== id ? 0.2 : 1;
       }
+      // миф-иллюстрация: показать кокон выбранного созвездия
+      for (const [mid, e] of Object.entries(mythMeshes)) e.target = mid === id ? 1 : 0;
     },
-    tick(t) { starMat.uniforms.uTime.value = t; },
+    tick(t, dt = 0) {
+      starMat.uniforms.uTime.value = t;
+      for (const e of Object.values(mythMeshes)) {
+        if (e.fade !== e.target) {
+          e.fade += (e.target - e.fade) * Math.min(1, dt * 3.5);
+          if (Math.abs(e.target - e.fade) < 0.01) e.fade = e.target;
+          e.mesh.material.opacity = e.fade * 0.9;
+          e.mesh.scale.setScalar(0.96 + 0.04 * e.fade); // draw-in: opacity + scale
+          e.mesh.visible = e.fade > 0.01;
+        }
+      }
+    },
   };
 
   return sky;

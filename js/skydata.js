@@ -3,14 +3,25 @@
 const BASE = "data/";
 const DEG = Math.PI / 180;
 
-/** Загрузка трёх JSON-артефактов. Бросает ошибку при сетевой/JSON-проблеме. */
+/** Загрузка JSON-артефактов. Бросает ошибку при сетевой/JSON-проблеме. */
 export async function loadSkyData() {
   const [stars, constellations, milkyway] = await Promise.all([
     fetch(BASE + "stars.json").then((r) => r.json()),
     fetch(BASE + "constellations.json").then((r) => r.json()),
     fetch(BASE + "milkyway.json").then((r) => r.json()),
   ]);
-  return { stars, constellations, milkyway };
+  // мифы и мета иллюстраций — необязательные: при отсутствии только предупреждение
+  let myths = null, mythMeta = null;
+  try {
+    const [m, mm] = await Promise.all([
+      fetch(BASE + "myths.json").then((r) => (r.ok ? r.json() : null)),
+      fetch("assets/myths/meta.json").then((r) => (r.ok ? r.json() : null)),
+    ]);
+    myths = m; mythMeta = mm;
+  } catch (e) {
+    console.warn("Мифы не загружены:", e);
+  }
+  return { stars, constellations, milkyway, myths, mythMeta };
 }
 
 /**
@@ -79,4 +90,36 @@ export function skyRotationMatrix(lstHours, latDeg, out) {
   out[2] = -cb * sa; out[6] = sb; out[10] = cb * ca; out[14] = 0;
   out[3] = 0; out[7] = 0; out[11] = 0; out[15] = 1;
   return out;
+}
+
+/**
+ * Средний экваториальный (ra,dec) всех вершин линий фигуры.
+ */
+export function figCentroid(c) {
+  let sx = 0, sy = 0, sz = 0;
+  for (const seg of c.lines) {
+    for (const [ra, dec] of seg) {
+      const a = ra * 15 * DEG, d = dec * DEG;
+      sx += Math.cos(d) * Math.cos(a); sy += Math.cos(d) * Math.sin(a); sz += Math.sin(d);
+    }
+  }
+  const raH = (Math.atan2(sy, sx) / DEG + 360) % 360 / 15;
+  return { ra: raH, dec: Math.atan2(sz, Math.hypot(sx, sy)) / DEG };
+}
+
+/**
+ * Угловой радиус (в градусах) фигуры вокруг центроида — для масштаба SVG.
+ */
+export function constAngularRadius(c) {
+  const ctr = figCentroid(c);
+  const cv = equatorialToVector(ctr.ra, ctr.dec);
+  let max = 0;
+  for (const seg of c.lines) {
+    for (const [ra, dec] of seg) {
+      const v = equatorialToVector(ra, dec);
+      const dot = Math.max(-1, Math.min(1, cv[0] * v[0] + cv[1] * v[1] + cv[2] * v[2]));
+      max = Math.max(max, Math.acos(dot) / DEG);
+    }
+  }
+  return max;
 }

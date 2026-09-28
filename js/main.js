@@ -150,7 +150,7 @@ async function boot() {
 
   const controls = createControls(sky.camera, canvas, sky);
   window.__sky = sky; // отладка
-  const ui = createUI(sky, controls);
+  const ui = createUI(sky, controls, data.myths);
   window.__ui = ui; // отладка
 
   loader.hidden = true;
@@ -170,7 +170,7 @@ async function boot() {
     if (hidden) return;
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
-    sky.tick(now / 1000);
+    sky.tick(now / 1000, dt);
     controls.update(dt);
     renderer.render(sky.scene, sky.camera);
     // отладочный снимок сразу после рендера (для автотестов)
