@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  CITIES, findCity, parseState, buildQuery, watchTime,
+  CITIES, findCity, parseState, buildQuery, watchTime, applyDateInput,
 } from "../js/location.js";
 import { jdFromDate } from "../js/astromath.js";
 
@@ -52,6 +52,23 @@ test("parseState: валидные c и t → город и момент", () =>
   assert.ok(Math.abs(jd - jdFromDate(new Date(2026, 0, 15, 21, 30))) < 1e-9);
 });
 
+test("parseState: t без города → Москва + время (шеринг-ссылка round-trip)", () => {
+  const s = parseState("?t=2026-01-15T21:30");
+  assert.equal(s.cityId, "moscow");
+  assert.equal(s.isNow, false);
+  assert.ok(s.date instanceof Date);
+  assert.equal(
+    Math.abs(watchTime(s) - jdFromDate(new Date(2026, 0, 15, 21, 30))) < 1e-9, true
+  );
+});
+
+test("parseState: битый город + валидное t → Москва + время", () => {
+  const s = parseState("?c=xyz&t=2026-01-15T21:30");
+  assert.equal(s.cityId, "moscow");
+  assert.equal(s.isNow, false);
+  assert.ok(s.date instanceof Date);
+});
+
 test("watchTime: isNow → актуальный момент", () => {
   const before = jdFromDate(new Date());
   const jd = watchTime({ cityId: "moscow", date: null });
@@ -65,4 +82,18 @@ test("buildQuery: дефолт → пусто; город ≠ Москва пи�
   assert.equal(buildQuery({ cityId: "sochi", date: null }), "?c=sochi");
   const q = buildQuery({ cityId: "sochi", date: new Date(2026, 8, 27, 21, 0) });
   assert.match(q, /^\?c=sochi&t=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}$/);
+});
+
+test("applyDateInput: валидная дата сохраняет время суток", () => {
+  const base = new Date(2026, 8, 27, 21, 30);
+  const d = applyDateInput("2026-09-28", base);
+  assert.ok(d instanceof Date);
+  assert.equal([d.getFullYear(), d.getMonth(), d.getDate()].join("-"), "2026-8-28");
+  assert.equal([d.getHours(), d.getMinutes()].join(":"), "21:30");
+});
+
+test("applyDateInput: очищенное/битое поле → null (небо не ломается)", () => {
+  const base = new Date(2026, 8, 27, 21, 30);
+  assert.equal(applyDateInput("", base), null);
+  assert.equal(applyDateInput("абракадабра", base), null);
 });

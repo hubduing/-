@@ -3,7 +3,7 @@ import * as THREE from "../vendor/three.module.js";
 import { loadSkyData } from "./skydata.js";
 import { createSkyScene, SPHERE_RADIUS } from "./scene.js";
 import { createControls } from "./controls.js";
-import { resolveStart, applyStateToUrl, watchTime, findCity, CITIES } from "./location.js";
+import { resolveStart, applyStateToUrl, watchTime, findCity, CITIES, applyDateInput } from "./location.js";
 import { createUI } from "./ui.js";
 
 const canvas = document.getElementById("sky");
@@ -99,10 +99,9 @@ async function boot() {
     setTimeThrottled(d);
   });
   dateInput.addEventListener("change", () => {
-    const [y, m, dd] = dateInput.value.split("-").map(Number);
-    const d = new Date(state.date || new Date());
-    d.setFullYear(y, m - 1, dd);
-    setTime(d);
+    // пустое поле (очистка) игнорируется — иначе Invalid Date → NaN в небе
+    const d = applyDateInput(dateInput.value, state.date || new Date());
+    if (d) setTime(d);
   });
   const shift = (ms) => () => setTime(new Date((state.date || new Date()).getTime() + ms));
   $("btn-minus-hour").addEventListener("click", shift(-3600e3));

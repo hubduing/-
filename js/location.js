@@ -100,11 +100,13 @@ export function parseState(query) {
     params = new URLSearchParams();
   }
   const city = findCity(params.get("c") || "");
+  // время разбирается НЕЗАВИСИМО от города: шеринг-ссылка «Москва + время»
+  // (?t=...) обязана round-trip'иться, а не молча терять момент
   const date = parseLocalISO(params.get("t") || "");
   if (city) {
     return { cityId: city.id, lat: city.lat, lon: city.lon, date, isNow: !date };
   }
-  return { cityId: "moscow", lat: 55.755, lon: 37.62, date: null, isNow: true };
+  return { cityId: "moscow", lat: 55.755, lon: 37.62, date, isNow: !date };
 }
 
 /** URL-параметры состояния: c — если город ≠ дефолт; t — если время ≠ сейчас. */
@@ -124,6 +126,19 @@ export function buildQuery({ cityId, date }) {
 /** Юлианская дата момента: isNow → текущий, иначе date. */
 export function watchTime({ date }) {
   return jdFromDate(date || new Date());
+}
+
+/**
+ * Разбор input[type=date] («YYYY-MM-DD») на фоне базового момента (время
+ * суток сохраняется). Пустое/битое поле → null: вызыватель игнорирует ввод
+ * вместо Invalid Date → NaN в матрице неба (небо «ломается» до перезагрузки).
+ */
+export function applyDateInput(value, base) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
+  if (!m) return null;
+  const d = new Date(base.getTime());
+  d.setFullYear(+m[1], +m[2] - 1, +m[3]);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 /**

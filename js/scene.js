@@ -125,22 +125,43 @@ function makeLabelSprite(text) {
 }
 
 /* ---------- ориентация миф-квадов ----------
- * SVG-кокон нарисован в гномонической проекции с осью X = восток вправо.
- * Наблюдатель в центре сферы смотрит на quad с тыла (DoubleSide), поэтому
- * правильный базис — СОБСТВЕННОЕ вращение (det=+1): X=восток, Y=север,
- * Z=наружу (+d). Тогда текстура видится с востока СЛЕВА — как настоящие
- * звёзды рядом (проверено проекцией: звезда с большим RA левее на экране).
- * (Старый вариант с Z=−d давал det=−1 — отражение, а не поворот.)
+ * SVG-кокон нарисован в гномонической проекции вокруг центроида фигуры:
+ * X+ = восток, Y+ = север (проверено tests/myth-align.test.js end-to-end).
+ * Базис — СОБСТВЕННОЕ вращение (det=+1): X=восток (NCP×d), Y=север, Z=+d
+ * наружу. Quad искривляется на сферу (curveQuadToSphere) — тогда линейный
+ * UV-маппинг точно обращает гномоническую проекцию SVG.
  */
 export function mythQuadBasis(raH, decDeg) {
   const dir = equatorialToVector(raH, decDeg);
   const d = new THREE.Vector3(dir[0], dir[1], dir[2]).normalize();
-  const up = new THREE.Vector3(0, 1, 0);
-  const east = new THREE.Vector3().crossVectors(up, d);
+  // восток = направление роста RA: NCP×d (NCP = +Z локальной group-системы)
+  const ncp = new THREE.Vector3(0, 0, 1);
+  const east = new THREE.Vector3().crossVectors(ncp, d);
   if (east.lengthSq() < 1e-6) east.set(1, 0, 0);
   east.normalize();
   const north = new THREE.Vector3().crossVectors(d, east).normalize();
   return new THREE.Matrix4().makeBasis(east, north, d);
+}
+
+/**
+ * Сферическое искривление quad'а миф-иллюстрации: вершины кладутся на сферу
+ * радиуса `radius` вдоль своих же направлений из центра (`center`,
+ * |center| = radius). Направления не меняются — меняется только дистанция,
+ * поэтому текстура падает на свои небесные направления. Чистая функция
+ * над BufferGeometry + THREE (юнит-тест: tests/myth-orient.test.js).
+ */
+export function curveQuadToSphere(geo, basis, center, radius) {
+  const inv = basis.clone().invert();
+  const pos = geo.attributes.position;
+  const tmp = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    tmp.fromBufferAttribute(pos, i).applyMatrix4(basis)
+      .add(center).normalize().multiplyScalar(radius)
+      .sub(center).applyMatrix4(inv);
+    pos.setXYZ(i, tmp.x, tmp.y, tmp.z);
+  }
+  pos.needsUpdate = true;
+  return geo;
 }
 const STAR_VERT = `
 attribute float size;
@@ -274,9 +295,11 @@ export function createSkyScene(canvas, data) {
     c.getContext("2d").drawImage(img, 0, 0);
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
-    const w = 2 * SPHERE_RADIUS * Math.tan((meta.wDeg / 2) * Math.PI / 180);
-    const h = 2 * SPHERE_RADIUS * Math.tan((meta.hDeg / 2) * Math.PI / 180);
-    const geo = new THREE.PlaneGeometry(w, h);
+    // линейный размер (без tan): вместе со сферическим искривлением ниже
+    // даёт ТОЧНОЕ гномоническое соответствие (см. tests/myth-align.test.js)
+    const w = SPHERE_RADIUS * meta.wDeg * Math.PI / 180;
+    const h = SPHERE_RADIUS * meta.hDeg * Math.PI / 180;
+    const geo = new THREE.PlaneGeometry(w, h, 24, 24);
     const mat = new THREE.MeshBasicMaterial({
       map: tex, transparent: true, opacity: 0, side: THREE.DoubleSide,
       depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending,
@@ -289,7 +312,8 @@ export function createSkyScene(canvas, data) {
     // наблюдатель видит тыл quad'а (DoubleSide) — восток слева, как звёзды
     const basis = mythQuadBasis(meta.ra, meta.dec);
     mesh.quaternion.setFromRotationMatrix(basis);
-    mesh.position.setFromMatrixColumn(basis, 2).multiplyScalar(SPHERE_RADIUS * 0.96);
+    mesh.position.setFromMatrixColumn(basis, 2).multiplyScalar(SPHERE_RADIUS);
+    curveQuadToSphere(geo, basis, mesh.position, SPHERE_RADIUS);
     skyGroup.add(mesh);
     return { mesh, tex, meta, target: 0, fade: 0 };
   }

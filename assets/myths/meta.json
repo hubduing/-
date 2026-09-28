@@ -2,106 +2,106 @@
  "ori": {
   "ra": 5.4324,
   "dec": 6.98,
-  "wDeg": 33.2,
-  "hDeg": 43.71,
+  "wDeg": 34.92,
+  "hDeg": 47.41,
   "svg": "assets/myths/ori.svg"
  },
  "umi": {
   "ra": 15.7633,
   "dec": 80.02,
-  "wDeg": 14.63,
-  "hDeg": 29.42,
+  "wDeg": 16.08,
+  "hDeg": 32.16,
   "svg": "assets/myths/umi.svg"
  },
  "uma": {
   "ra": 10.9076,
   "dec": 52.65,
-  "wDeg": 65.72,
-  "hDeg": 50.24,
+  "wDeg": 74.89,
+  "hDeg": 61.17,
   "svg": "assets/myths/uma.svg"
  },
  "cyg": {
   "ra": 20.1555,
   "dec": 40.73,
-  "wDeg": 33.35,
-  "hDeg": 37.53,
+  "wDeg": 39.52,
+  "hDeg": 38.65,
   "svg": "assets/myths/cyg.svg"
  },
  "cas": {
   "ra": 0.9898,
   "dec": 60.36,
-  "wDeg": 21.27,
-  "hDeg": 15.76,
+  "wDeg": 21.85,
+  "hDeg": 15.95,
   "svg": "assets/myths/cas.svg"
  },
  "per": {
   "ra": 3.3943,
   "dec": 45.16,
-  "wDeg": 35.94,
-  "hDeg": 35.79,
+  "wDeg": 43.44,
+  "hDeg": 37.85,
   "svg": "assets/myths/per.svg"
  },
  "and": {
   "ra": 0.5607,
   "dec": 38.6,
-  "wDeg": 48.16,
-  "hDeg": 39.58,
+  "wDeg": 48.43,
+  "hDeg": 44.61,
   "svg": "assets/myths/and.svg"
  },
  "cep": {
   "ra": 21.8354,
   "dec": 63.94,
-  "wDeg": 26.09,
-  "hDeg": 33.03,
+  "wDeg": 29.45,
+  "hDeg": 41.74,
   "svg": "assets/myths/cep.svg"
  },
  "dra": {
   "ra": 16.8179,
   "dec": 66.34,
-  "wDeg": 49.7,
-  "hDeg": 47.3,
+  "wDeg": 57.54,
+  "hDeg": 52.97,
   "svg": "assets/myths/dra.svg"
  },
  "tau": {
   "ra": 4.3021,
   "dec": 14.55,
-  "wDeg": 46.1,
-  "hDeg": 41.86,
+  "wDeg": 51.96,
+  "hDeg": 42.56,
   "svg": "assets/myths/tau.svg"
  },
  "gem": {
   "ra": 7.0376,
   "dec": 23.13,
-  "wDeg": 31.34,
-  "hDeg": 29.67,
+  "wDeg": 33.1,
+  "hDeg": 31.21,
   "svg": "assets/myths/gem.svg"
  },
  "vir": {
   "ra": 13.2723,
   "dec": -0.4,
-  "wDeg": 64.74,
-  "hDeg": 39.49,
+  "wDeg": 64.8,
+  "hDeg": 39.99,
   "svg": "assets/myths/vir.svg"
  },
  "sco": {
   "ra": 16.8109,
   "dec": -33.64,
-  "wDeg": 33.68,
-  "hDeg": 34.5,
+  "wDeg": 33.71,
+  "hDeg": 38.06,
   "svg": "assets/myths/sco.svg"
  },
  "lyr": {
   "ra": 18.8075,
   "dec": 36.51,
-  "wDeg": 11.45,
-  "hDeg": 14.43,
+  "wDeg": 11.65,
+  "hDeg": 15.02,
   "svg": "assets/myths/lyr.svg"
  },
  "peg": {
   "ra": 22.7258,
   "dec": 21.01,
-  "wDeg": 52.14,
-  "hDeg": 41.62,
+  "wDeg": 60.46,
+  "hDeg": 44.04,
   "svg": "assets/myths/peg.svg"
  }
 }

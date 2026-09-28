@@ -1,18 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1529" height="1134" viewBox="0 0 1529 1134">
+<svg xmlns="http://www.w3.org/2000/svg" width="1571" height="1147" viewBox="0 0 1571 1147">
   <g stroke="#d9b45b" fill="none" stroke-width="2">
-    <path d="M 216,614 C 345,497 1162,225 1314,216 C 1466,206 1259,439 1129,556 C 999,673 688,908 536,918 C 384,927 86,731 216,614 Z" opacity="0.55" stroke-width="2.5"/>
+    <path d="M 216,627 C 86,744 384,941 536,931 C 688,922 1000,687 1129,570 C 1259,453 1466,219 1314,229 C 1162,239 345,510 216,627 Z" opacity="0.55" stroke-width="2.5"/>
     <g opacity="0.9">
-    <line x1="1223" y1="275" x2="1021" y2="558"/>
-    <line x1="1021" y1="558" x2="762" y2="535"/>
-    <line x1="762" y1="535" x2="598" y2="829"/>
-    <line x1="598" y1="829" x2="323" y2="604"/>
+    <line x1="1223" y1="288" x2="1021" y2="571"/>
+    <line x1="1021" y1="571" x2="762" y2="548"/>
+    <line x1="762" y1="548" x2="598" y2="843"/>
+    <line x1="598" y1="843" x2="323" y2="617"/>
     </g>
     <g fill="#d9b45b" stroke="none" opacity="0.85">
-    <circle cx="1223" cy="275" r="5"/>
-    <circle cx="1021" cy="558" r="5"/>
-    <circle cx="762" cy="535" r="5"/>
-    <circle cx="598" cy="829" r="5"/>
-    <circle cx="323" cy="604" r="5"/>
+    <circle cx="1223" cy="288" r="5"/>
+    <circle cx="1021" cy="571" r="5"/>
+    <circle cx="762" cy="548" r="5"/>
+    <circle cx="598" cy="843" r="5"/>
+    <circle cx="323" cy="617" r="5"/>
     </g>
   </g>
 </svg>

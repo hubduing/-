@@ -52,42 +52,47 @@ export function bvToColor(bv) {
 }
 
 /**
- * Экваториальные (α, δ) → единичный вектор scene-базиса:
- *   x = −cosδ·sinα, y = sinδ (северный полюс мира), z = cosδ·cosα.
- * Базис согласован с горизонтальным: единичный поворот M = Rx(90°−φ)·Ry(LST·15°)
- * переводит scene-вектор в горизонтальный базис (zenith=+Y, north=−Z, east=+X).
+ * Экваториальные (α, δ) → единичный вектор локальной group-системы:
+ *   x = cosδ·cosα, y = cosδ·sinα, z = sinδ (NCP = +Z).
+ * Правая тройка: x×y=z. skyRotationMatrix переводит её в горизонтальный
+ * базис камеры (east=+X, up=+Y, north=−Z), согласованный с
+ * astromath.horizontalToDirection (проверено tests/skyframe.test.js,
+ * в т.ч. вне меридиана — меридианные эталоны зеркала E–W не ловят).
  */
 export function equatorialToVector(raH, decDeg, out = [0, 0, 0]) {
   const a = raH * 15 * DEG;
   const d = decDeg * DEG;
   const cd = Math.cos(d);
-  out[0] = -cd * Math.sin(a);
-  out[1] = Math.sin(d);
-  out[2] = cd * Math.cos(a);
+  out[0] = cd * Math.cos(a);
+  out[1] = cd * Math.sin(a);
+  out[2] = Math.sin(d);
   return out;
 }
 
 /**
- * Матрица неба M = Rx(φ−90°)·Ry(LST·15°) (THREE.Matrix4, column-major).
- * Переводит экваториальный scene-вектор equatorialToVector(α,δ) в
- * горизонтальный базис камеры (east=+X, up=+Y, south=+Z), согласованный с
- * astromath.horizontalToDirection.
- * Эталон: звезда (α=LST, δ=φ) → зенит (0,1,0); NCP → (0, sinφ, 0…
- * −cosφ·? ) север на высоте φ.
+ * Матрица неба (THREE.Matrix4, column-major): экваториальный вектор
+ * equatorialToVector(α,δ) → горизонтальный базис камеры
+ * (east=+X, up=+Y, north=−Z), согласованный с astromath.
+ * Строки (row-major), L=LST·15°, φ=широта:
+ *   east  = (−sinL, cosL, 0)
+ *   up    = (cosφ·cosL, cosφ·sinL, sinφ)
+ *   south = (sinφ·cosL, sinφ·sinL, −cosφ)
+ * Собственное вращение (r0×r1=r2). Эталоны: звезда (α=LST, δ=φ) → зенит
+ * (0,1,0); NCP (0,0,1) → (0, sinφ, −cosφ) — север на высоте φ.
  * @param {Float32Array} out массив из 16 чисел
  */
 export function skyRotationMatrix(lstHours, latDeg, out) {
-  const b = (latDeg - 90) * DEG;
   const a = lstHours * 15 * DEG;
-  const cb = Math.cos(b), sb = Math.sin(b);
-  const ca = Math.cos(a), sa = Math.sin(a);
+  const f = latDeg * DEG;
+  const sa = Math.sin(a), ca = Math.cos(a);
+  const sf = Math.sin(f), cf = Math.cos(f);
   // row-major M:
-  //  [ ca,      0,  sa     ]
-  //  [ sb*sa,   cb, -sb*ca ]
-  //  [ -cb*sa,  sb,  cb*ca ]
-  out[0] = ca;    out[4] = 0;   out[8] = sa;     out[12] = 0;
-  out[1] = sb * sa; out[5] = cb; out[9] = -sb * ca; out[13] = 0;
-  out[2] = -cb * sa; out[6] = sb; out[10] = cb * ca; out[14] = 0;
+  //  [ -sa,      ca,     0   ]
+  //  [ cf*ca, cf*sa,    sf   ]
+  //  [ sf*ca, sf*sa,   -cf   ]
+  out[0] = -sa;    out[4] = ca;     out[8] = 0;   out[12] = 0;
+  out[1] = cf * ca; out[5] = cf * sa; out[9] = sf;  out[13] = 0;
+  out[2] = sf * ca; out[6] = sf * sa; out[10] = -cf; out[14] = 0;
   out[3] = 0; out[7] = 0; out[11] = 0; out[15] = 1;
   return out;
 }
