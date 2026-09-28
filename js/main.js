@@ -149,9 +149,7 @@ async function boot() {
 
 
   const controls = createControls(sky.camera, canvas, sky);
-  window.__sky = sky; // отладка
-  const ui = createUI(sky, controls, data.myths);
-  window.__ui = ui; // отладка
+  createUI(sky, controls, data.myths);
 
   loader.hidden = true;
   canvas.style.opacity = "0";
@@ -161,7 +159,6 @@ async function boot() {
   document.getElementById("topbar").hidden = false;
   const hideHint = () => { document.getElementById("hint").hidden = true; };
   canvas.addEventListener("pointerdown", hideHint, { once: true });
-  window.__controls = controls; // для автотестов
 
   let last = performance.now(), hidden = false;
   document.addEventListener("visibilitychange", () => (hidden = document.hidden));
@@ -173,21 +170,6 @@ async function boot() {
     sky.tick(now / 1000, dt);
     controls.update(dt);
     renderer.render(sky.scene, sky.camera);
-    // отладочный снимок сразу после рендера (для автотестов)
-    if (window.__checkRequested) {
-      window.__checkRequested = false;
-      const gl = renderer.getContext();
-      const w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
-      const buf = new Uint8Array(4 * w * h);
-      gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
-      let bright = 0, maxV = 0;
-      for (let i = 0; i < buf.length; i += 4) {
-        const v = buf[i] + buf[i + 1] + buf[i + 2];
-        if (v > 30) bright++;
-        if (v > maxV) maxV = v;
-      }
-      window.__renderCheck = { bright, maxV, w, h, t: now };
-    }
   }
   requestAnimationFrame(frame);
 }

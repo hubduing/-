@@ -42,7 +42,22 @@ vendored без CDN-зависимости в рантайме.
 node --test tests/
 ```
 
-## Деплой
+## Деплой (GitHub Pages)
 
-GitHub Pages: Settings → Pages → Source: `main`, root. Сайт полностью
-статический.
+Сайт полностью статический, без сборки:
+
+1. Закоммитить и запушить ветку `main`:
+   `git push origin main`.
+2. GitHub → Settings → Pages → Source: Deploy from a branch,
+   Branch: `main`, folder: `/ (root)` → Save.
+3. Через минуту-две сайт доступен по адресу
+   `https://<user>.github.io/<repo>/`.
+4. Проверка боевого URL: открывается по HTTPS (геолокация работает
+   только по HTTPS/локально), небо соответствует месту и времени.
+
+Локальный предпросмотр перед деплоем:
+
+```bash
+python -m http.server 8000
+# открыть http://localhost:8000 (file:// не подойдёт: ES-модули)
+```

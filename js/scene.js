@@ -124,7 +124,24 @@ function makeLabelSprite(text) {
   return sp;
 }
 
-/* ---------- шейдер звёзд ---------- */
+/* ---------- ориентация миф-квадов ----------
+ * SVG-кокон нарисован в гномонической проекции с осью X = восток вправо.
+ * Наблюдатель в центре сферы смотрит на quad с тыла (DoubleSide), поэтому
+ * правильный базис — СОБСТВЕННОЕ вращение (det=+1): X=восток, Y=север,
+ * Z=наружу (+d). Тогда текстура видится с востока СЛЕВА — как настоящие
+ * звёзды рядом (проверено проекцией: звезда с большим RA левее на экране).
+ * (Старый вариант с Z=−d давал det=−1 — отражение, а не поворот.)
+ */
+export function mythQuadBasis(raH, decDeg) {
+  const dir = equatorialToVector(raH, decDeg);
+  const d = new THREE.Vector3(dir[0], dir[1], dir[2]).normalize();
+  const up = new THREE.Vector3(0, 1, 0);
+  const east = new THREE.Vector3().crossVectors(up, d);
+  if (east.lengthSq() < 1e-6) east.set(1, 0, 0);
+  east.normalize();
+  const north = new THREE.Vector3().crossVectors(d, east).normalize();
+  return new THREE.Matrix4().makeBasis(east, north, d);
+}
 const STAR_VERT = `
 attribute float size;
 attribute float twinkle;
@@ -268,17 +285,11 @@ export function createSkyScene(canvas, data) {
     mesh.renderOrder = 10;
     mesh.frustumCulled = false;
     mesh.visible = false;
-    // ориентация: local +X = восток, +Y = север, +Z = наружу (к наблюдателю)
-    const dir = equatorialToVector(meta.ra, meta.dec);
-    const d = new THREE.Vector3(dir[0], dir[1], dir[2]).normalize();
-    const up = new THREE.Vector3(0, 1, 0);
-    const east = new THREE.Vector3().crossVectors(up, d);
-    if (east.lengthSq() < 1e-6) east.set(1, 0, 0);
-    east.normalize();
-    const north = new THREE.Vector3().crossVectors(d, east).normalize();
-    const m = new THREE.Matrix4().makeBasis(east, north, d.clone().negate());
-    mesh.quaternion.setFromRotationMatrix(m);
-    mesh.position.copy(d).multiplyScalar(SPHERE_RADIUS * 0.96);
+    // ориентация: local +X = восток, +Y = север, +Z = наружу (к сфере);
+    // наблюдатель видит тыл quad'а (DoubleSide) — восток слева, как звёзды
+    const basis = mythQuadBasis(meta.ra, meta.dec);
+    mesh.quaternion.setFromRotationMatrix(basis);
+    mesh.position.setFromMatrixColumn(basis, 2).multiplyScalar(SPHERE_RADIUS * 0.96);
     skyGroup.add(mesh);
     return { mesh, tex, meta, target: 0, fade: 0 };
   }
